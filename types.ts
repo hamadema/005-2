@@ -17,8 +17,10 @@ export interface DesignCost {
   type: string;
   description: string;
   amount: number;
-  extraCharges?: number; // Added for Sanjaya
+  extraCharges?: number;
   addedBy: string;
+  paid?: boolean; // Add this field
+  paidDate?: string; // Optional: when it was paid
 }
 
 export interface Payment {

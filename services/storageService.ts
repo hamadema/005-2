@@ -1,4 +1,3 @@
-
 import { DesignCost, Payment, QuickButton } from '../types';
 
 const KEYS = {
@@ -17,6 +16,13 @@ const DEFAULT_BUTTONS: QuickButton[] = [
   { id: '4', label: 'UI Mockup', amount: 2500, type: 'UX' }
 ];
 
+interface RemoteResponse {
+  costs?: any[];
+  payments?: any[];
+  status: string;
+  message?: string;
+}
+
 const parseSafeAmount = (val: any): number => {
   if (typeof val === 'number') return val;
   if (!val) return 0;
@@ -25,7 +31,7 @@ const parseSafeAmount = (val: any): number => {
   return isNaN(parsed) ? 0 : parsed;
 };
 
-const sanitizeRemoteItems = (items: any[]) => {
+const sanitizeRemoteItems = (items: any[]): any[] => {
   if (!Array.isArray(items)) return [];
   return items.map(item => {
     const raw = item as any;
@@ -37,7 +43,6 @@ const sanitizeRemoteItems = (items: any[]) => {
     const note = raw.note || raw.description || raw.desc || 'Log Entry';
     const date = raw.date || new Date().toISOString();
     
-    // Create a stable ID if none exists to prevent deselection on refresh
     const stableId = raw.id || `${date}-${amount}-${description}`.replace(/\s+/g, '-');
 
     return {
@@ -64,7 +69,7 @@ export const storageService = {
     if (gasUrl) {
       try {
         const res = await fetch(gasUrl, { method: 'GET', cache: 'no-store' });
-        const data = await res.json();
+        const data: RemoteResponse = await res.json();
         return sanitizeRemoteItems(data.costs || []);
       } catch (e) {
         console.warn("Sync failed, check GAS URL", e);
@@ -116,7 +121,7 @@ export const storageService = {
     if (gasUrl) {
       try {
         const res = await fetch(gasUrl, { method: 'GET', cache: 'no-store' });
-        const data = await res.json();
+        const data: RemoteResponse = await res.json();
         return sanitizeRemoteItems(data.payments || []);
       } catch (e) { console.warn("Sync failed", e); }
     }

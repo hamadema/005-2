@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, UserRole, DesignCost, Payment, QuickButton } from './types';
 import { storageService } from './services/storageService';
@@ -71,7 +70,6 @@ const App: React.FC = () => {
         alert("Invalid Password");
       }
     } else if (role === UserRole.RAVI) {
-      // Ravi password removed as requested
       setCurrentUser({ role, name: 'Ravi', email: 'ravi2025@client.com' });
       setFormData(prev => ({ ...prev, method: 'Sampath Bank' }));
     }
@@ -122,7 +120,6 @@ const App: React.FC = () => {
     const extraNum = parseFloat(formData.extraCharges) || 0;
     if (isNaN(amountNum) || amountNum <= 0) return alert("Enter valid amount");
 
-    // Handle optional description defaults
     const finalDescription = formData.description.trim() || (currentUser.role === UserRole.SANJAYA ? "Design Work" : "Payment Settlement");
 
     if (currentUser.role === UserRole.SANJAYA) {
@@ -137,13 +134,11 @@ const App: React.FC = () => {
       };
       await storageService.saveCost(newCost, currentUser.email);
 
-      // Calculate updated totals for the message
       const newTotalCosts = totalCosts + amountNum + extraNum;
       const newBalance = newTotalCosts - totalPaid;
 
-      // WhatsApp to Ravi
       const msg = `Hello Ravi Aiya, 👋\n\nNew Recent Work: ${finalDescription}\nItem Total: Rs.${(amountNum + extraNum).toLocaleString()}\n\n--- Project Summary ---\nTotal Bill: Rs.${newTotalCosts.toLocaleString()}\n*Pending: Rs.${Math.max(0, newBalance).toLocaleString()}*\n\nPlease pay the pending balance as soon as possible. Thank you! 🙏`;
-      sendWhatsApp('940718010611', msg);
+      sendWhatsApp('+94718010611', msg);
 
       if (formData.saveAsPreset && formData.description.trim()) {
         const exists = managedQuickButtons.some(b => b.label.toLowerCase() === finalDescription.toLowerCase() && b.amount === amountNum);
@@ -152,23 +147,51 @@ const App: React.FC = () => {
         }
       }
     } else {
+       // RAVI PAYMENT HANDLING
+      let paymentNote = '';
+      let paymentAmount = amountNum;
+      
+      // If items are selected, create a detailed payment note
+      if (selectedCostIds.length > 0) {
+        const selectedItems = costs.filter(c => selectedCostIds.includes(c.id));
+        const itemDescriptions = selectedItems.map(item => 
+          `${item.description} (Rs.${(item.amount + (item.extraCharges || 0)).toLocaleString()})`
+        ).join(', ');
+        
+        paymentNote = `Payment for: ${itemDescriptions}`;
+      } else {
+        // If no items selected, use the description or default
+        paymentNote = finalDescription;
+      }
+
       const newPayment: Payment = {
         id: crypto.randomUUID(),
         date: new Date().toISOString(),
-        amount: amountNum,
-        note: finalDescription,
+        amount: paymentAmount,
+        note: paymentNote,
         method: formData.method,
         addedBy: currentUser.name
       };
+      
       await storageService.savePayment(newPayment, currentUser.email);
 
-      // Calculate updated totals for the message
       const newTotalPaid = totalPaid + amountNum;
       const newBalance = totalCosts - newTotalPaid;
 
-      // WhatsApp to Sanjaya
-      const msg = `Hello Sanjaya, 👋\n\nNew Payment: ${finalDescription}\nAmount: Rs.${amountNum.toLocaleString()}\n\n--- Project Summary ---\nTotal Bill: Rs.${totalCosts.toLocaleString()}\n*Pending: Rs.${Math.max(0, newBalance).toLocaleString()}*\n\nThank you! 🙏`;
-      sendWhatsApp('94777961841', msg);
+      // Customize message based on whether items were selected
+      let msg = '';
+      if (selectedCostIds.length > 0) {
+        const selectedItems = costs.filter(c => selectedCostIds.includes(c.id));
+        const itemsList = selectedItems.map(item => 
+          `• ${item.description}: Rs.${(item.amount + (item.extraCharges || 0)).toLocaleString()}`
+        ).join('\n');
+        
+        msg = `Hello Sanjaya, 👋\n\nPayment Received for Selected Items:\n${itemsList}\n\nTotal Amount: Rs.${amountNum.toLocaleString()}\n\n--- Project Summary ---\nTotal Bill: Rs.${totalCosts.toLocaleString()}\n*Pending: Rs.${Math.max(0, newBalance).toLocaleString()}*\n\nThank you! 🙏`;
+      } else {
+        msg = `Hello Sanjaya, 👋\n\nNew Payment: ${finalDescription}\nAmount: Rs.${amountNum.toLocaleString()}\n\n--- Project Summary ---\nTotal Bill: Rs.${totalCosts.toLocaleString()}\n*Pending: Rs.${Math.max(0, newBalance).toLocaleString()}*\n\nThank you! 🙏`;
+      }
+      
+      sendWhatsApp('+94777961841', msg);
       
       // Clear selected costs after payment
       setSelectedCostIds([]);
@@ -268,19 +291,21 @@ const App: React.FC = () => {
   }
 
   const roleColor = currentUser.role === UserRole.SANJAYA ? 'emerald' : 'indigo';
+  const isSanjaya = currentUser.role === UserRole.SANJAYA;
+  const isRavi = currentUser.role === UserRole.RAVI;
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 px-4 py-2 shadow-sm">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className={`w-8 h-8 bg-${roleColor}-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md`}>
+            <div className={`w-8 h-8 ${isSanjaya ? 'bg-emerald-600' : 'bg-indigo-600'} rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md`}>
               {currentUser.name[0]}
             </div>
             <div className="leading-tight">
               <p className="text-xs font-black text-slate-900">{currentUser.name}</p>
               <p className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                {currentUser.role === UserRole.SANJAYA ? 'Creative Lead' : 'Project Sponsor'}
+                {isSanjaya ? 'Creative Lead' : 'Project Sponsor'}
               </p>
             </div>
           </div>
@@ -311,7 +336,7 @@ const App: React.FC = () => {
           }} 
         />
 
-        {currentUser.role === UserRole.RAVI && (
+        {isRavi && (
           <div className="bg-indigo-600 text-white p-6 rounded-3xl shadow-xl flex justify-between items-center animate-in slide-in-from-right-4">
             <button 
               onClick={() => {
@@ -333,7 +358,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {currentUser.role === UserRole.SANJAYA && (
+        {isSanjaya && (
           <section className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
@@ -378,7 +403,7 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {currentUser.role === UserRole.RAVI && (
+      {isRavi && (
         <div className="fixed bottom-6 right-6 z-40">
           <button onClick={() => setIsAddModalOpen(true)} className="w-14 h-14 rounded-2xl bg-indigo-600 text-white shadow-xl flex items-center justify-center active:scale-90 transition-transform">
             <Icons.Plus />
@@ -473,7 +498,7 @@ const App: React.FC = () => {
           <div className="bg-white w-full max-w-md rounded-t-3xl md:rounded-3xl shadow-2xl p-6 md:p-8">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                {currentUser.role === UserRole.SANJAYA ? 'Design Work Entry' : <><Icons.Wallet /> Pay</>}
+                {isSanjaya ? 'Design Work Entry' : <><Icons.Wallet /> Pay</>}
               </h3>
               <button onClick={() => setIsAddModalOpen(false)} className="p-2 bg-slate-100 rounded-full text-slate-400">✕</button>
             </div>
@@ -481,19 +506,19 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
-                    {currentUser.role === UserRole.SANJAYA ? 'Base Cost (Rs.)' : 'Paid Amount (Rs.)'}
+                    {isSanjaya ? 'Base Cost (Rs.)' : 'Paid Amount (Rs.)'}
                   </label>
                   <input autoFocus required type="number" step="0.01" value={formData.amount} onChange={(e) => setFormData({...formData, amount: e.target.value})} className="w-full px-4 py-3 bg-slate-50 rounded-xl text-xl font-black outline-none border border-slate-100" placeholder="0.00" />
                 </div>
                 
-                {currentUser.role === UserRole.SANJAYA && (
+                {isSanjaya && (
                   <div>
                     <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Extra Charges (Rs.)</label>
                     <input type="number" step="0.01" value={formData.extraCharges} onChange={(e) => setFormData({...formData, extraCharges: e.target.value})} className="w-full px-4 py-3 bg-slate-50 rounded-xl text-base font-black outline-none border border-slate-100 text-emerald-600" placeholder="0.00" />
                   </div>
                 )}
 
-                {currentUser.role === UserRole.RAVI && (
+                {isRavi && (
                   <div>
                     <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Payment Method</label>
                     <select 
@@ -512,11 +537,11 @@ const App: React.FC = () => {
                   <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
                     Reference Note <span className="opacity-50">(Optional)</span>
                   </label>
-                  <input type="text" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-3 bg-slate-50 rounded-xl font-bold outline-none border border-slate-100 text-sm" placeholder={currentUser.role === UserRole.SANJAYA ? "e.g. Logo Revision" : "e.g. Monthly Settlement"} />
+                  <input type="text" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-3 bg-slate-50 rounded-xl font-bold outline-none border border-slate-100 text-sm" placeholder={isSanjaya ? "e.g. Logo Revision" : "e.g. Monthly Settlement"} />
                 </div>
               </div>
 
-              {currentUser.role === UserRole.SANJAYA && (
+              {isSanjaya && (
                 <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
                   <input 
                     type="checkbox" 
@@ -531,8 +556,8 @@ const App: React.FC = () => {
                 </div>
               )}
               
-              <button type="submit" className={`w-full py-4 bg-${roleColor}-600 text-white font-black rounded-xl shadow-lg active:scale-95 mt-2 transition-all`}>
-                Finalize {currentUser.role === UserRole.SANJAYA ? 'Bill' : 'Payment'}
+              <button type="submit" className={`w-full py-4 ${isSanjaya ? 'bg-emerald-600' : 'bg-indigo-600'} text-white font-black rounded-xl shadow-lg active:scale-95 mt-2 transition-all`}>
+                Finalize {isSanjaya ? 'Bill' : 'Payment'}
               </button>
             </form>
           </div>
