@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DesignCost, Payment, UserRole } from '../types';
 import { Icons } from '../constants';
@@ -39,14 +38,8 @@ const Dashboard: React.FC<DashboardProps> = ({ costs, payments, userRole, onLogP
             </div>
           </div>
           
-          {userRole === UserRole.RAVI && balance < 0 && (
-            <button 
-              onClick={() => onLogPaymentClick(displayBalance)} 
-              className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-[10px] font-black shadow-lg shadow-indigo-200 transition-all active:scale-95 uppercase tracking-wider flex items-center gap-1.5"
-            >
-              <Icons.Wallet /> Full PAY
-            </button>
-          )}
+          {/* REMOVED: Full Pay button for Ravi */}
+          
         </div>
         
         <div className="px-6 pb-4">
