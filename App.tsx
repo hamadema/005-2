@@ -147,7 +147,7 @@ const App: React.FC = () => {
         }
       }
     } else {
-       // RAVI PAYMENT HANDLING
+      // RAVI PAYMENT HANDLING
       let paymentNote = '';
       let paymentAmount = amountNum;
       
@@ -402,14 +402,6 @@ const App: React.FC = () => {
           />
         </div>
       </main>
-
-      {isRavi && (
-        <div className="fixed bottom-6 right-6 z-40">
-          <button onClick={() => setIsAddModalOpen(true)} className="w-14 h-14 rounded-2xl bg-indigo-600 text-white shadow-xl flex items-center justify-center active:scale-90 transition-transform">
-            <Icons.Plus />
-          </button>
-        </div>
-      )}
 
       {/* Quick Bill Manager Modal */}
       {isQuickBillManagerOpen && (
