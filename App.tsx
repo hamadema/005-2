@@ -500,7 +500,16 @@ const App: React.FC = () => {
                   <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
                     {isSanjaya ? 'Base Cost (Rs.)' : 'Paid Amount (Rs.)'}
                   </label>
-                  <input autoFocus required type="number" step="0.01" value={formData.amount} onChange={(e) => setFormData({...formData, amount: e.target.value})} className="w-full px-4 py-3 bg-slate-50 rounded-xl text-xl font-black outline-none border border-slate-100" placeholder="0.00" />
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={formData.amount} 
+                    onChange={(e) => setFormData({...formData, amount: e.target.value})} 
+                    className="w-full px-4 py-3 bg-slate-50 rounded-xl text-xl font-black outline-none border border-slate-100" 
+                    placeholder="0.00"
+                    // Only autoFocus for Sanjaya, no focus for Ravi
+                    autoFocus={isSanjaya}
+                  />
                 </div>
                 
                 {isSanjaya && (
@@ -529,7 +538,14 @@ const App: React.FC = () => {
                   <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
                     Reference Note <span className="opacity-50">(Optional)</span>
                   </label>
-                  <input type="text" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-3 bg-slate-50 rounded-xl font-bold outline-none border border-slate-100 text-sm" placeholder={isSanjaya ? "e.g. Logo Revision" : "e.g. Monthly Settlement"} />
+                  <input 
+                    type="text" 
+                    value={formData.description} 
+                    onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                    className="w-full px-4 py-3 bg-slate-50 rounded-xl font-bold outline-none border border-slate-100 text-sm" 
+                    placeholder={isSanjaya ? "e.g. Logo Revision" : "e.g. Monthly Settlement"}
+                    // No autoFocus for Ravi
+                  />
                 </div>
               </div>
 
