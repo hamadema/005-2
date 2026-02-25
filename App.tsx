@@ -496,21 +496,62 @@ const App: React.FC = () => {
             </div>
             <form onSubmit={handleAddEntry} className="space-y-4">
               <div className="grid grid-cols-1 gap-3">
-                <div>
-                  <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
-                    {isSanjaya ? 'Base Cost (Rs.)' : 'Paid Amount (Rs.)'}
-                  </label>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    value={formData.amount} 
-                    onChange={(e) => setFormData({...formData, amount: e.target.value})} 
-                    className="w-full px-4 py-3 bg-slate-50 rounded-xl text-xl font-black outline-none border border-slate-100" 
-                    placeholder="0.00"
-                    // Only autoFocus for Sanjaya, no focus for Ravi
-                    autoFocus={isSanjaya}
-                  />
-                </div>
+                {/* Paid Amount Field with Enable Checkbox - Only for Ravi */}
+                {isRavi && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                        Paid Amount (Rs.)
+                      </label>
+                      <label className="flex items-center gap-1.5 text-[8px] font-bold text-slate-500">
+                        <input 
+                          type="checkbox" 
+                          checked={formData.amountEnabled || false}
+                          onChange={(e) => setFormData({...formData, amountEnabled: e.target.checked})}
+                          className="w-3 h-3 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                        />
+                        Enable Edit
+                      </label>
+                    </div>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      value={formData.amount} 
+                      onChange={(e) => setFormData({...formData, amount: e.target.value})} 
+                      className={`w-full px-4 py-3 bg-slate-50 rounded-xl text-xl font-black outline-none border transition-all ${
+                        !formData.amountEnabled 
+                          ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed' 
+                          : 'border-slate-100 focus:ring-2 focus:ring-indigo-500'
+                      }`} 
+                      placeholder="0.00"
+                      disabled={!formData.amountEnabled}
+                      readOnly={!formData.amountEnabled}
+                    />
+                    {!formData.amountEnabled && (
+                      <p className="text-[7px] text-slate-400 mt-1 ml-1">
+                        Check "Enable Edit" to modify amount
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* For Sanjaya - Amount field without checkbox */}
+                {isSanjaya && (
+                  <div>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
+                      Base Cost (Rs.)
+                    </label>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      value={formData.amount} 
+                      onChange={(e) => setFormData({...formData, amount: e.target.value})} 
+                      className="w-full px-4 py-3 bg-slate-50 rounded-xl text-xl font-black outline-none border border-slate-100" 
+                      placeholder="0.00"
+                      autoFocus={isSanjaya}
+                    />
+                  </div>
+                )}
                 
                 {isSanjaya && (
                   <div>
@@ -534,19 +575,59 @@ const App: React.FC = () => {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
-                    Reference Note <span className="opacity-50">(Optional)</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    value={formData.description} 
-                    onChange={(e) => setFormData({...formData, description: e.target.value})} 
-                    className="w-full px-4 py-3 bg-slate-50 rounded-xl font-bold outline-none border border-slate-100 text-sm" 
-                    placeholder={isSanjaya ? "e.g. Logo Revision" : "e.g. Monthly Settlement"}
-                    // No autoFocus for Ravi
-                  />
-                </div>
+                {/* Reference Note Field with Enable Checkbox - For Ravi only */}
+                {isRavi && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                        Reference Note <span className="opacity-50">(Optional)</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 text-[8px] font-bold text-slate-500">
+                        <input 
+                          type="checkbox" 
+                          checked={formData.noteEnabled || false}
+                          onChange={(e) => setFormData({...formData, noteEnabled: e.target.checked})}
+                          className="w-3 h-3 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                        />
+                        Enable Edit
+                      </label>
+                    </div>
+                    <input 
+                      type="text" 
+                      value={formData.description} 
+                      onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                      className={`w-full px-4 py-3 bg-slate-50 rounded-xl font-bold outline-none border transition-all ${
+                        !formData.noteEnabled 
+                          ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed' 
+                          : 'border-slate-100'
+                      }`} 
+                      placeholder="e.g. Monthly Settlement"
+                      disabled={!formData.noteEnabled}
+                      readOnly={!formData.noteEnabled}
+                    />
+                    {!formData.noteEnabled && (
+                      <p className="text-[7px] text-slate-400 mt-1 ml-1">
+                        Check "Enable Edit" to add a note
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* For Sanjaya - Reference Note without checkbox */}
+                {isSanjaya && (
+                  <div>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">
+                      Reference Note <span className="opacity-50">(Optional)</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      value={formData.description} 
+                      onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                      className="w-full px-4 py-3 bg-slate-50 rounded-xl font-bold outline-none border border-slate-100 text-sm" 
+                      placeholder="e.g. Logo Revision"
+                    />
+                  </div>
+                )}
               </div>
 
               {isSanjaya && (
